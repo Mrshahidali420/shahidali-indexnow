@@ -1,8 +1,9 @@
 name: indexnow
 
 # Tells IndexNow (Bing, Yandex, Seznam, Naver) about new or changed pages on
-# Shahid's sites. gta6record and manhwaindex also ping from their own deploys;
-# this is a second, scheduled safety net for them. Reads only live sitemaps. Runs every 3 hours and on demand.
+# Shahid's sites. gta6record also pings from its own deploy; this is a second,
+# scheduled safety net. manhwaindex is left out on purpose: Bot Fight Mode
+# blocks GitHub runners, and its own deploy ping already works. Runs every 3 hours and on demand.
 
 on:
   schedule:
@@ -33,7 +34,6 @@ jobs:
             .indexnow-state.json
             .indexnow-state-aniimoindex.json
             .indexnow-state-gta6record.json
-            .indexnow-state-manhwaindex.json
           key: indexnow-state-${{ github.run_id }}
           restore-keys: |
             indexnow-state-
@@ -55,11 +55,3 @@ jobs:
           SITE_KEY: 9ce5adc7d2b0607db3a4e84d14e85185
           SEED_IF_EMPTY: '1'
           STATE_PATH: ${{ github.workspace }}/.indexnow-state-gta6record.json
-      - name: manhwaindex.com
-        run: node indexnow.mjs
-        env:
-          SITE_HOST: manhwaindex.com
-          SITE_KEY: 368b5571dfe5413a9a435c04fac12b49
-          SITE_SITEMAP: https://manhwaindex.com/sitemap.xml
-          SEED_IF_EMPTY: '1'
-          STATE_PATH: ${{ github.workspace }}/.indexnow-state-manhwaindex.json
