@@ -34,3 +34,5 @@ jobs:
           restore-keys: |
             indexnow-state-
       - run: node indexnow.mjs
+        env:
+          STATE_PATH: ${{ github.workspace }}/.indexnow-state.json
