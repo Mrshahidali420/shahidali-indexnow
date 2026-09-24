@@ -195,6 +195,15 @@ async function main() {
     return;
   }
 
+  // SEED_IF_EMPTY=1: for a site that already pings from its own deploy, the
+  // first run only records what is live, so hundreds of thousands of known
+  // URLs are not re-sent in one burst.
+  if (previousState === null && process.env.SEED_IF_EMPTY === '1') {
+    writeFileSync(statePath, JSON.stringify(nextState, null, 0), 'utf8');
+    console.log(`[indexnow] seeded state with ${entries.length} url(s), nothing sent`);
+    return;
+  }
+
   if (toSend.length === 0) {
     console.log('[indexnow] nothing new to announce');
     writeFileSync(statePath, JSON.stringify(nextState, null, 0), 'utf8');
@@ -206,7 +215,13 @@ async function main() {
     return;
   }
 
-  const failed = await submit(toSend);
+  // MAX_PER_RUN caps one run; the rest stay pending for the next run.
+  const maxPerRun = Number(process.env.MAX_PER_RUN) || 10000;
+  const sending = toSend.slice(0, maxPerRun);
+  const deferred = toSend.slice(maxPerRun);
+  if (deferred.length > 0) console.log(`[indexnow] sending ${sending.length} now, ${deferred.length} left for later runs`);
+
+  const failed = [...(await submit(sending)), ...deferred];
   const failedUrls = new Set(failed);
   for (const url of failedUrls) {
     // Do not record a failed URL as announced: drop it back to whatever the
@@ -215,7 +230,8 @@ async function main() {
     if (previousState && previousState[url] !== undefined) nextState[url] = previousState[url];
     else delete nextState[url];
   }
-  if (failed.length > 0) console.warn(`[indexnow] ${failed.length} url(s) not accepted, kept for the next run`);
+  const rejected = failed.length - deferred.length;
+  if (rejected > 0) console.warn(`[indexnow] ${rejected} url(s) not accepted, kept for the next run`);
 
   writeFileSync(statePath, JSON.stringify(nextState, null, 0), 'utf8');
   console.log(`[indexnow] wrote state (${Object.keys(nextState).length} url(s)) to ${statePath}`);
