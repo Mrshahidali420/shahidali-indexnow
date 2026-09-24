@@ -1,8 +1,8 @@
 name: indexnow
 
 # Tells IndexNow (Bing, Yandex, Seznam, Naver) about new or changed pages on
-# https://www.shahidali.co. It reads only the live sitemap, so it needs none
-# of the site's source code. Runs every 3 hours and on demand.
+# Shahid's sites that have no deploy-time ping of their own (shahidali.co,
+# aniimoindex.com). It reads only each live sitemap, so it needs no site code. Runs every 3 hours and on demand.
 
 on:
   schedule:
@@ -29,10 +29,20 @@ jobs:
       # state is always saved; restore-keys picks up the most recent one.
       - uses: actions/cache@v4
         with:
-          path: .indexnow-state.json
+          path: |
+            .indexnow-state.json
+            .indexnow-state-aniimoindex.json
           key: indexnow-state-${{ github.run_id }}
           restore-keys: |
             indexnow-state-
-      - run: node indexnow.mjs
+      - name: shahidali.co
+        run: node indexnow.mjs
         env:
           STATE_PATH: ${{ github.workspace }}/.indexnow-state.json
+      - name: aniimoindex.com
+        run: node indexnow.mjs
+        env:
+          SITE_HOST: aniimoindex.com
+          SITE_KEY: fcd243846b51df9c03eb9e33a5048553
+          SITE_SITEMAP: https://aniimoindex.com/sitemap.xml
+          STATE_PATH: ${{ github.workspace }}/.indexnow-state-aniimoindex.json

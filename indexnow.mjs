@@ -32,10 +32,10 @@ import path from 'node:path';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
-export const HOST = 'www.shahidali.co';
-export const KEY = '0a3ddd2b4a1ecb87f609774f653347c7';
+export const HOST = process.env.SITE_HOST || 'www.shahidali.co';
+export const KEY = process.env.SITE_KEY || '0a3ddd2b4a1ecb87f609774f653347c7';
 export const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;
-export const SITEMAP_INDEX = `https://${HOST}/sitemap-index.xml`;
+export const SITEMAP_INDEX = process.env.SITE_SITEMAP || `https://${HOST}/sitemap-index.xml`;
 export const ENDPOINT = 'https://api.indexnow.org/indexnow';
 
 /** IndexNow's own cap per request. */
